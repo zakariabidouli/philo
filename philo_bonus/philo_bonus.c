@@ -66,21 +66,22 @@ void    stop_simulation(t_env *env, int exit)
     pid_t pid;
 
     while(it < env->num_of_philos)
-        sem_close(env->forks[it++]);
+    {
+        sem_close(env->forks[it]);
+        it++;
+    }
     sem_close(env->print);
 	sem_unlink("/print");
 	sem_unlink("/forks");
-    free(env->philos);
-    free(env->forks);
-    system("leaks philo_bonus");
-    it = 0;
-    while(it < env->num_of_philos)
-    {
-        kill(env->philos[it].pid, SIGKILL);
-        it++;
-    }
-    free(env);
-    kill(exit, SIGKILL);
+    kill(0, SIGKILL);
+    
+    // it = 0;
+    // while(it < env->num_of_philos)
+    // {
+    //     it++;
+    // }
+    // free(env);
+    // exit(1);
 }
 
 void    sup(t_philo *philo)
@@ -93,10 +94,11 @@ void init_sem(t_env *env)
 {
     int it;
 
-    sem_unlink("/forks");
 	sem_unlink("/print");
+    sem_unlink("/forks");
     while(it < env->num_of_philos && env->forks[it] != SEM_FAILED)
     {
+        // env->forks[it] = (sem_t *)malloc(sizeof(sem_t *));
         env->forks[it] = sem_open("/forks", O_CREAT , S_IRUSR | S_IWUSR, 1);
         it++;
     }
@@ -123,6 +125,8 @@ int simulate(t_env  *env)
             env->philos[it].num_of_eat = 0;
             env->philos[it].last_eat_time = env->start_time;
             env->philos[it].pid = getpid();
+            // printf("\nid>> [%d] pid>> [%d]\n",env->philos[it].id, env->philos[it].pid);
+            // printf("\nid>> main pid>> [%d]\n",env->main_pid);
             env->philos[it].fork = env->forks[it];
             if(pthread_create(&env->philos[it].thread, NULL, routine, &env->philos[it]))
                 return 1;
@@ -137,13 +141,13 @@ int simulate(t_env  *env)
     return 0;
 }
 
-int main(int ac, char **av)
+void test(int ac, char **av)
 {
     t_env *env;
 
     if(!(env = (t_env *)malloc(sizeof(t_env))))
         terminated("Error_malloc");
-    printf("main pid = %p\n", env);
+    // printf("main pid = %d\n", env);
     if(ac < 5)
         terminated("TOO_FEW_ARGS");
     if(ac > 6)
@@ -154,7 +158,15 @@ int main(int ac, char **av)
             terminated("Error_parse");
         if(simulate(env))
             terminated("Error_simulate");
-        stop_simulation(env , env->main_pid);
+        // stop_simulation(env , env->main_pid);
     }
-    return 0;           
+    return ;           
+}
+
+int main(int ac, char **av)
+{
+    test(ac, av);
+    system("leaks philo_bonus");
+ 
+
 }

@@ -36,7 +36,10 @@ void print_status(t_philo *philo, char *msg)
     pthread_mutex_lock(&philo->env->print);
     printf("%lld %d %s\n", time, philo->id + 1, msg);
     if(str_cmp(msg, "DEAD"))
+    {
+        system("leaks philo");
         exit(1);
+    }
     pthread_mutex_unlock(&philo->env->print);
 }
 
@@ -50,7 +53,10 @@ void    check_status(t_philo *philo)
     if (time > philo->env->time_to_die)
         print_status(philo, "DEAD");
     else if(philo->num_of_eat == philo->env->num_of_eat)
+    {
+        system("leaks philo");
         exit(1);
+    }
 }
 
 void *routine(void *arg)
@@ -90,12 +96,10 @@ int simulate(t_env *env)
 {
     int i = 0;
     env->start_time = get_time();
-    if(!(env->philos = (t_philo *)malloc(sizeof(t_philo) * env->num_of_philo)))
-        terminated("error_malloc");
+    
         
     while (i < env->num_of_philo)
     {
-        // printf("init_philo\n");
         env->philos[i].id = i;
         env->philos[i].env = env;
         env->philos[i].num_of_eat = 0;
@@ -111,15 +115,10 @@ int simulate(t_env *env)
     {
         if(pthread_join(env->philos[i].thread, NULL))
             terminated ("PTHREAD_JOIN_ERROR");
+        if(pthread_detach(env->philos[i].thread))
+            terminated ("PTHREAD_DETACH_ERROR");
         i++;
     }
-    // i = 0;
-    // while(i < env->num_of_philo)
-    // {
-    //     if(pthread_detach(env->philos[i].thread))
-    //         terminated ("PTHREAD_DETACH_ERROR");
-    //     i++;
-    // }
     return (0);
 }
 
