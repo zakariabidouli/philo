@@ -1,141 +1,109 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   philo.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: zbidouli <zbidouli@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/01/07 00:01:09 by zbidouli          #+#    #+#             */
+/*   Updated: 2023/01/07 00:23:39 by zbidouli         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
-// get_time
 
-// --------
-//  get current time
-long long get_time(void)
+void	print_status(t_philo *philo, char *msg)
 {
-    struct timeval tv;
+	long long	time;
 
-    gettimeofday(&tv, NULL);
-    return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
+	time = get_time() - philo->env->start_time;
+	pthread_mutex_lock(&philo->env->print);
+	printf("%lld %d %s\n", time, philo->id + 1, msg);
+	if (str_cmp(msg, "DEAD"))
+		exit(1);
+	pthread_mutex_unlock(&philo->env->print);
 }
 
-// print_status
-
-// ------------
-
-//  print status of philo
-int str_cmp(char *s1, char *s2)
+void	*routine(void *arg)
 {
-    while(*s1 && *s2)
-    {
-        if(*s1 != *s2)
-            return 0;
-        s1++;
-        s2++;
-    }
-    return 1;
+	t_philo	*philo;
+
+	philo = (t_philo *)arg;
+	while (philo)
+	{
+		check_status(philo);
+		pthread_mutex_lock(philo->mutex);
+		print_status(philo, "has taken a fork");
+		pthread_mutex_lock(philo->mutex + 1);
+		print_status(philo, "has taken a fork");
+		philo->last_eat_time = get_time();
+		print_status(philo, "is eating");
+		usleep(philo->env->time_to_eat * 1000);
+		philo->num_of_eat++;
+		pthread_mutex_unlock(philo->mutex);
+		pthread_mutex_unlock(philo->mutex + 1);
+		print_status(philo, "is sleeping");
+		usleep(philo->env->time_to_sleep * 1000);
+		check_status(philo);
+		print_status(philo, "is thinking");
+		check_status(philo);
+	}
+	return (philo);
 }
 
-void print_status(t_philo *philo, char *msg)
+void	sup(t_env *env)
 {
-    long long time;
+	int	i;
 
-    time = get_time() - philo->env->start_time;
-    pthread_mutex_lock(&philo->env->print);
-    printf("%lld %d %s\n", time, philo->id + 1, msg);
-    if(str_cmp(msg, "DEAD"))
-    {
-        system("leaks philo");
-        exit(1);
-    }
-    pthread_mutex_unlock(&philo->env->print);
+	i = 0;
+	while (i < env->num_of_philo)
+	{
+		if (pthread_join(env->philos[i].thread, NULL))
+			terminated ("PTHREAD_JOIN_ERROR");
+		if (pthread_detach(env->philos[i].thread))
+			terminated ("PTHREAD_DETACH_ERROR");
+		i++;
+	}
 }
 
-// check if philo is dead
-
-void    check_status(t_philo *philo)
+int	simulate(t_env *env)
 {
-    long long time;
+	int	i;
 
-    time = get_time() - philo->last_eat_time;
-    if (time > philo->env->time_to_die)
-        print_status(philo, "DEAD");
-    else if(philo->num_of_eat == philo->env->num_of_eat)
-    {
-        system("leaks philo");
-        exit(1);
-    }
+	i = 0;
+	env->start_time = get_time();
+	while (i < env->num_of_philo)
+	{
+		env->philos[i].id = i;
+		env->philos[i].env = env;
+		env->philos[i].num_of_eat = 0;
+		env->philos[i].last_eat_time = env->start_time;
+		env->philos[i].mutex = &env->forks[i];
+		if (pthread_create(&env->philos[i].thread, NULL,
+				routine, &env->philos[i]))
+			terminated ("PTHREAD_CREATE_ERROR");
+		usleep(600);
+		i++;
+	}
+	sup(env);
+	return (0);
 }
 
-void *routine(void *arg)
+int	main(int ac, char **av)
 {
-    t_philo *philo;
+	t_env	*env;
 
-    philo = (t_philo *)arg;
-    while (philo)
-    {
-        
-        check_status(philo);
-        pthread_mutex_lock(philo->mutex);
-        print_status(philo, "has taken a fork");
-
-        // printf("#######>>[%d]>>>>>>>>>>>>>\n" , philo->env->is_dead);
-        pthread_mutex_lock(philo->mutex + 1);
-        print_status(philo, "has taken a fork");
-
-        philo->last_eat_time = get_time();
-        print_status(philo, "is eating");
-        usleep(philo->env->time_to_eat * 1000);
-        philo->num_of_eat++;
-        pthread_mutex_unlock(philo->mutex);
-        pthread_mutex_unlock(philo->mutex + 1);
-
-        print_status(philo, "is sleeping");
-        usleep(philo->env->time_to_sleep * 1000);
-
-        check_status(philo);
-        print_status(philo, "is thinking");
-        check_status(philo);
-    }
-    return (philo);
-}
-
-int simulate(t_env *env)
-{
-    int i = 0;
-    env->start_time = get_time();
-    
-        
-    while (i < env->num_of_philo)
-    {
-        env->philos[i].id = i;
-        env->philos[i].env = env;
-        env->philos[i].num_of_eat = 0;
-        env->philos[i].last_eat_time = env->start_time;
-        env->philos[i].mutex = &env->forks[i];
-        if(pthread_create(&env->philos[i].thread, NULL, routine, &env->philos[i]))
-            terminated ("PTHREAD_CREATE_ERROR");
-        usleep(600);
-        i++;
-    }
-    i = 0;
-    while(i < env->num_of_philo)
-    {
-        if(pthread_join(env->philos[i].thread, NULL))
-            terminated ("PTHREAD_JOIN_ERROR");
-        if(pthread_detach(env->philos[i].thread))
-            terminated ("PTHREAD_DETACH_ERROR");
-        i++;
-    }
-    return (0);
-}
-
-int main(int ac, char **av)
-{
-    t_env *env;
-
-    if (ac < 5)
-        terminated ("error_missing_args");
-    if (ac > 6)
-        terminated ("error_many_args");
-    if (!(env = (t_env *)malloc(sizeof(t_env))))
-        terminated("error_malloc");
-    if (parse(ac, av, env))
-        terminated("error_parse");
-    env->is_dead = false;
-    if(simulate(env))
-        terminated("error_simulation");
-    return (0);
+	if (ac < 5)
+		terminated ("error_missing_args");
+	if (ac > 6)
+		terminated ("error_many_args");
+	env = (t_env *)malloc(sizeof(t_env));
+	if (!env)
+		terminated("error_malloc");
+	if (parse(ac, av, env))
+		terminated("error_parse");
+	env->is_dead = false;
+	if (simulate(env))
+		terminated("error_simulation");
+	return (0);
 }

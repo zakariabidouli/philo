@@ -4,7 +4,7 @@ Flags = -g -Werror -Wextra -Wall -pthread
 
 NAME = philo_bonus
 
-SRC = parse.c philo_bonus.c utils.c ft_atoi.c\
+SRC = parse.c philo_bonus.c utils.c ft_atoi.c init.c\
 
 OBJ = $(SRC:.c=.o)
 

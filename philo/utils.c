@@ -1,35 +1,60 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   utils.c                                            :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: zbidouli <zbidouli@student.42.fr>          +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2023/01/07 00:01:31 by zbidouli          #+#    #+#             */
+/*   Updated: 2023/01/07 00:23:06 by zbidouli         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "philo.h"
-#include <errno.h>
 
-int ft_strlen(char *s)
+void	check_status(t_philo *philo)
 {
-    int i = 0;
-    while(s[i])
-        i++;
-    return (i);
+	long long	time;
+
+	time = get_time() - philo->last_eat_time;
+	if (time > philo->env->time_to_die)
+		print_status(philo, "DEAD");
+	else if (philo->num_of_eat == philo->env->num_of_eat)
+		exit(1);
 }
 
-void    terminated(char *msg)
+int	ft_strlen(char *s)
 {
-    printf("%s\n", msg);
-    exit(1);
+	int	i;
+
+	i = 0;
+	while (s[i])
+		i++;
+	return (i);
 }
 
-// int mynanosleep(long long sec, long nanosec)
-// {
-//    struct timespec req;
-//    req.tv_sec = sec;
-//    req.tv_nsec = nanosec;
+void	terminated(char *msg)
+{
+	printf("%s\n", msg);
+	exit(1);
+}
 
-//    while(req.tv_sec > 0 || req.tv_nsec > 0) 
-//    {
-//       if( 0 != nanosleep( &req, &req ))
-//       {
-//           if(errno != EINTR)
-//              return -1; 
-//       }
-//       else
-//           break;
-//    }         
-//    return 0;
-// }
+long long	get_time(void)
+{
+	struct timeval	tv;
+
+	gettimeofday(&tv, NULL);
+	return (tv.tv_sec * 1000 + tv.tv_usec / 1000);
+}
+
+int	str_cmp(char *s1, char *s2)
+{
+	while (*s1 && *s2)
+	{
+		if (*s1 != *s2)
+			return (0);
+		s1++;
+		s2++;
+	}
+	return (1);
+}
