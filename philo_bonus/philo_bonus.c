@@ -6,7 +6,7 @@
 /*   By: zbidouli <zbidouli@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/07 00:28:39 by zbidouli          #+#    #+#             */
-/*   Updated: 2023/01/07 00:52:36 by zbidouli         ###   ########.fr       */
+/*   Updated: 2023/01/08 00:55:13 by zbidouli         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,12 +26,12 @@ void	*routine(void *arg)
 		print_status(philo, "has taken a fork");
 		philo->last_eat_time = get_time();
 		print_status(philo, "is eating");
-		usleep(philo->env->time_to_eat * 1000);
+		usleep(philo->env->time_to_eat * 1010);
 		philo->num_of_eat++;
 		sem_post(philo->fork);
 		sem_post(&philo->fork[philo->id + 1]);
 		print_status(philo, "is sleeping");
-		usleep(philo->env->time_to_sleep * 1000);
+		usleep(philo->env->time_to_sleep * 1010);
 		print_status(philo, "is thinking");
 	}
 }
