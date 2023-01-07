@@ -48,9 +48,12 @@ void	check_status(t_philo *philo)
 
 	time = get_time() - philo->last_eat_time;
 	if (time > philo->env->time_to_die)
+	{	
+		print_status(philo, "died");
 		philo->env->is_dead = true;
-	else if (philo->num_of_eat == philo->env->num_of_eat)
-		philo->env->is_dead = true;
+	}
+	if (philo->num_of_eat == philo->env->num_of_eat)
+		stop_simulation(philo->env, philo->env->main_pid);
 }
 
 void	print_status(t_philo *philo, char *msg)
@@ -61,6 +64,6 @@ void	print_status(t_philo *philo, char *msg)
 	sem_wait(philo->env->print);
 	printf("%lld %d %s\n", time, philo->id, msg);
 	sem_post(philo->env->print);
-	if (philo->env->is_dead == true)
+	if (philo->env->is_dead == true || str_cmp(msg, "died"))
 		stop_simulation(philo->env, philo->env->main_pid);
 }

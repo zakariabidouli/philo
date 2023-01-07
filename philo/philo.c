@@ -19,7 +19,7 @@ void	print_status(t_philo *philo, char *msg)
 	time = get_time() - philo->env->start_time;
 	pthread_mutex_lock(&philo->env->print);
 	printf("%lld %d %s\n", time, philo->id + 1, msg);
-	if (str_cmp(msg, "DEAD"))
+	if (str_cmp(msg, "died"))
 		exit(1);
 	pthread_mutex_unlock(&philo->env->print);
 }
@@ -46,7 +46,6 @@ void	*routine(void *arg)
 		usleep(philo->env->time_to_sleep * 1000);
 		check_status(philo);
 		print_status(philo, "is thinking");
-		check_status(philo);
 	}
 	return (philo);
 }

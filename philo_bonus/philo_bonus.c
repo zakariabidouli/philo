@@ -21,13 +21,13 @@ void	*routine(void *arg)
 	{
 		check_status(philo);
 		sem_wait(philo->fork);
-		print_status(philo, "picked up L fork");
+		print_status(philo, "has taken a fork");
 		sem_wait(&philo->fork[philo->id + 1]);
-		print_status(philo, "picked up R fork");
+		print_status(philo, "has taken a fork");
+		philo->last_eat_time = get_time();
 		print_status(philo, "is eating");
 		usleep(philo->env->time_to_eat * 1000);
 		philo->num_of_eat++;
-		philo->last_eat_time = get_time();
 		sem_post(philo->fork);
 		sem_post(&philo->fork[philo->id + 1]);
 		print_status(philo, "is sleeping");
@@ -39,7 +39,6 @@ void	*routine(void *arg)
 void	stop_simulation(t_env *env, int exit)
 {
 	int		it;
-	pid_t	pid;
 
 	it = 0;
 	while (it < env->num_of_philos)
@@ -50,6 +49,7 @@ void	stop_simulation(t_env *env, int exit)
 	sem_close(env->print);
 	sem_unlink("/print");
 	sem_unlink("/forks");
+	pthread_detach(env->philos[it].thread);
 	kill(0, SIGKILL);
 }
 
@@ -77,7 +77,7 @@ int	simulate(t_env *env)
 			if (pthread_create(&env->philos[it].thread, NULL,
 					routine, &env->philos[it]))
 				return (1);
-			usleep(600);
+			usleep(1000);
 			sup(&env->philos[it]);
 		}
 		it++;
