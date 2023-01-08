@@ -1,6 +1,6 @@
 cc = gcc
 
-FLAGS = -g -Wall -Wextra -Werror -pthread
+FLAGS = -Wall -Wextra -Werror -pthread
 
 NAME = philo
 
@@ -9,7 +9,7 @@ M_SRC = philo.c parse_in.c ft_atoi.c utils.c\
 M_OBJ = $(M_SRC:.c=.o)
 
 all: $(NAME)
-	
+
 $(NAME): $(M_OBJ)
 	$(CC) $(FLAGS) -o $(NAME) $(M_OBJ)
 

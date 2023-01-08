@@ -6,7 +6,7 @@
 /*   By: zbidouli <zbidouli@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2023/01/07 00:01:09 by zbidouli          #+#    #+#             */
-/*   Updated: 2023/01/07 00:23:39 by zbidouli         ###   ########.fr       */
+/*   Updated: 2023/01/08 23:47:02 by zbidouli         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,6 +46,7 @@ void	*routine(void *arg)
 		usleep(philo->env->time_to_sleep * 1000);
 		check_status(philo);
 		print_status(philo, "is thinking");
+		usleep(1);
 	}
 	return (philo);
 }
